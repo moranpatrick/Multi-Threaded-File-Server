@@ -1,0 +1,5 @@
+<client-config username="gmit-sw2016">
+	<server-host>127.0.0.1></server-host>
+	<server-port>7777</server-port>
+	<downlaod-dir>./downloads/</downlaod-dir>
+</client-config>

@@ -1,5 +1,8 @@
 package ie.gmit.sw.server;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -13,6 +16,7 @@ public class WebServer {
 	private ServerSocket ss; //A server socket listens on a port number for incoming requests
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
+	private String message;
 	
 	//The first 1024 ports require administrator privileges. We'll use 8080 instead. The range 
 	//of port numbers runs up to 2 ^ 16 = 65536 ports.
@@ -22,10 +26,12 @@ public class WebServer {
 	//Listener. The volatile keyword tells the JVM not to cache the value of keepRunning during
 	//optimisation, but to check it's value in memory before using it.
 	private volatile boolean keepRunning = true;
+	private String directory;
 	
 	
 	//A null constructor for the WebServer class
-	private WebServer(){
+	private WebServer(String dir){
+		this.directory = dir;
 		try { //Try the following. If anything goes wrong, the error will be passed to the catch block
 			
 			ss = new ServerSocket(SERVER_PORT); //Start the server socket listening on port 8080
@@ -51,7 +57,13 @@ public class WebServer {
 	
 	//A main method is required to start a standard Java application
 	public static void main(String[] args) {
-		new WebServer(); //Create an instance of a WebServer. This fires the constructor of WebServer() above on the main stack 
+		if(args.length < 2){
+			System.out.println("You must enter a port number and path.");
+		}
+		else{
+			new WebServer(args[1]); //Create an instance of a WebServer. This fires the constructor of WebServer() above on the main stack 
+		}
+		
 	}
 	
 	/* The inner class Listener is a Runnable, i.e. a job that can be given to a Thread. The job that
@@ -67,7 +79,7 @@ public class WebServer {
 				try { //Try the following. If anything goes wrong, the error will be passed to the catch block
 					
 					Socket s = ss.accept(); //This is a blocking method, causing this thread to stop and wait here for an incoming request
-					
+					System.out.println("New Request");
 					/* If we get to this line, it means that a client request was received and that the socket "s" is a real network
 					 * connection between some computer and this programme. We'll farm out this request to a new Thread (worker), 
 					 * allowing us to handle the next incoming request (we could have many requests hitting the server at the same time),
@@ -103,15 +115,34 @@ public class WebServer {
                 Object command = in.readObject(); //Deserialise the request into an Object
                
             	if(command.toString().equals("2")){
-            		GetListFiles getFiles = new GetListFiles();
+            		System.out.println("Asked to print files");
+            		GetListFiles getFiles = new GetListFiles(directory);
             		String files = getFiles.files().toString();
-            		String message = files;
+            		message = files;
             		out.writeObject(message);
             		out.flush();    		
             		
             	}
             	else if(command.toString().equals("3")){
-            		
+                    message = "What file do you wish to download?";
+                	out.writeObject(message);
+                    out.flush();
+                    
+                    command = in.readObject();//Deserialise the request into an Object
+                    System.out.println(command.toString());
+         
+                                        
+                    
+                    File targetFile = new File(directory + command.toString());
+                    System.out.println(targetFile.exists());
+                    
+                    byte[] mybytearray = new byte[(int) targetFile.length()];
+                    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(targetFile));
+                    bis.read(mybytearray, 0, mybytearray.length);
+                    
+                    out.write(mybytearray, 0, mybytearray.length);
+                    out.flush();
+                    
             		
             	}
             	

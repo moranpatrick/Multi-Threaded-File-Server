@@ -1,5 +1,5 @@
 <client-config username="gmit-sw2016">
-	<server-host>127.0.0.1></server-host>
+	<server-host>127.0.0.1</server-host>
 	<server-port>7777</server-port>
-	<downlaod-dir>./downloads/</downlaod-dir>
+	<download-dir>C:/Users/Patrick/git/Multi-Threaded-File-Server/downloads/</download-dir>
 </client-config>

@@ -1,6 +1,9 @@
 package ie.gmit.sw.client;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -8,17 +11,14 @@ import java.util.Scanner;
 
 public class Runner {
 	//Variables
-	private static ContextParser ctx;
-	private static Socket requestSocket;
+	private static Context ctx;
+	private static Socket requestSocket = null;
 	private static ObjectOutputStream out;
  	private static ObjectInputStream in;
- 
-
+ 	
 	public static void main(String[] args) {
 		int response = 0;
 		Scanner scanner = new Scanner(System.in);
-		//Create a socket Connection
-		Socket s = null;
 		
 		do{
 			System.out.println("\n==================Menu==================");
@@ -31,15 +31,17 @@ public class Runner {
 			response = scanner.nextInt();
 			
 			if(response == 1){
-				if(s != null){
-					System.out.println("You Are Already Connected to the Server!");
+				if (requestSocket != null) {
+					if(requestSocket.isConnected()){
+						System.out.println("You Are Already Connected to the Server!");
+					}
 				}
 				else{
 					connect();
 				}
 			}
-			else if( response == 2){
-				if(s != null){
+			else if(response == 2){
+				if(requestSocket == null){
 					System.out.println("Open a Connection To The Server First!");
 				}
 				else{
@@ -50,7 +52,7 @@ public class Runner {
 				downloadFile();
 			}
 			else if(response == 4){
-				if(s != null){
+				if(requestSocket != null){
 					System.out.println("No Connection Open - Closing Program");
 				}
 				else{
@@ -66,7 +68,11 @@ public class Runner {
 	public static void connect() { 
 		
 		try { //Attempt the following. If something goes wrong, the flow jumps down to catch()
-			requestSocket = new Socket("localhost", 7777); //Connect to the server
+			ctx = new Context();
+			ContextParser par = new ContextParser(ctx);
+			int test = ctx.getServerPort();
+			System.out.println(test);
+			requestSocket = new Socket(ctx.getServerHost(), ctx.getServerPort()); //Connect to the server
 	
 			
 			System.out.println("Successfully Connected To The Server!");			
@@ -80,22 +86,30 @@ public class Runner {
 	//Print File Listing
 	public static void printFileListing(){
 		try {
+			System.out.println("1");
 			out = new ObjectOutputStream(requestSocket.getOutputStream());
+			System.out.println("2");
 			String command = "2";
 			out.writeObject(command);
+			System.out.println("3");
 			out.flush();
+			System.out.println("4");
 			
 			in = new ObjectInputStream(requestSocket.getInputStream());
+			System.out.println("5");
 			try {
 				String response = (String) in.readObject();
+				System.out.println("6");
 				System.out.println(response);
+				System.out.println("7");
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			} //Deserialise
 			
-			
+			System.out.println("8");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	
@@ -104,7 +118,45 @@ public class Runner {
 	
 	//Downlaod File
 	private static void downloadFile() {
-		
+		Scanner scanner = new Scanner(System.in);
+		String fileToDownload;
+		try {
+			out = new ObjectOutputStream(requestSocket.getOutputStream());
+			String command = "3";
+			out.writeObject(command);
+			out.flush();
+			
+			in = new ObjectInputStream(requestSocket.getInputStream());
+			try {
+				String response = (String) in.readObject();
+				System.out.println(response);
+				
+				fileToDownload = scanner.nextLine();
+				out.writeObject(fileToDownload);
+				out.flush();
+				
+				
+				byte[] mybytearray = new byte[1024];
+			    FileOutputStream fos = new FileOutputStream(ctx.getDownloadDir() + fileToDownload);
+			    BufferedOutputStream bos = new BufferedOutputStream(fos);
+			    int bytesRead = in.read(mybytearray, 0, mybytearray.length);
+			    bos.write(mybytearray, 0, bytesRead);
+			    
+			    bos.close();
+				System.out.println(ctx.getDownloadDir() + fileToDownload);
+				System.out.println(ctx.getServerPort());
+				
+				
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} //Deserialise
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			
+			e.printStackTrace();
+		}
+				
 		
 	}
 	
@@ -120,3 +172,7 @@ public class Runner {
 	}
 	
 }//Runner
+
+//TODO 
+//Fix hanging on connection with client server
+//Handle Connection handling 

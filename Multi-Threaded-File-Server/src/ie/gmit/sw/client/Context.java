@@ -9,7 +9,6 @@ public class Context {
 	private String downloadDir;
 	
 	public Context(){
-		super();
 		
 	}
 	public String getUsername() {

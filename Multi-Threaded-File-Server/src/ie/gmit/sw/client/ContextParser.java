@@ -9,6 +9,12 @@ public class ContextParser {
 	public ContextParser(Context ctx) {
 		super();
 		this.ctx = ctx;
+		try {
+			init();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void init() throws Throwable{
@@ -54,6 +60,7 @@ public class ContextParser {
 				else if(e.getNodeName().equals("download-dir")){
 					String downloadDir = e.getFirstChild().getNodeValue();
 					ctx.setDownloadDir(downloadDir);
+					System.out.println(downloadDir);
 				}						
 			}
 		}	

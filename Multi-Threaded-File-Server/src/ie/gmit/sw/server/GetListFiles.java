@@ -4,12 +4,18 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class GetListFiles {
+	private String directory;
 	
-	public static ArrayList files(){ 
+	public GetListFiles(String dir){
+		this.directory = dir;
+		
+	}
+	
+	public ArrayList files(){ 
 		
 		ArrayList<String> listOfFiles = new ArrayList<String>();
 		
-		File fileLocation = new File("C:/Users/Patrick/git/Multi-Threaded-File-Server/Resources/");
+		File fileLocation = new File(directory);
 		//Return an array of file namees in the resouces folder
 		File[] files = fileLocation.listFiles();
 		
@@ -19,8 +25,7 @@ public class GetListFiles {
 			if(files[i].isFile()){
 				String fileName = files[i].getName();
 				//add the filename to the arraylist
-				listOfFiles.add(fileName);
-				
+				listOfFiles.add(fileName);		
 			}
 		}
 		return listOfFiles;

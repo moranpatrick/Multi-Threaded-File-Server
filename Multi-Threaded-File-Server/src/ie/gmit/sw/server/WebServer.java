@@ -6,9 +6,13 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.xml.ws.handler.MessageContext;
+
 
 public class WebServer {
 	private ServerSocket ss; //A server socket listens on a port number for incoming requests
+	private ObjectOutputStream out;
+	private ObjectInputStream in;
 	
 	//The first 1024 ports require administrator privileges. We'll use 8080 instead. The range 
 	//of port numbers runs up to 2 ^ 16 = 65536 ports.
@@ -50,8 +54,6 @@ public class WebServer {
 		new WebServer(); //Create an instance of a WebServer. This fires the constructor of WebServer() above on the main stack 
 	}
 	
-	
-	
 	/* The inner class Listener is a Runnable, i.e. a job that can be given to a Thread. The job that
 	 * the class has been given is to intercept incoming client requests and farm them out to other
 	 * threads. Each client request is in the form of a socket and will be handled by a separate new thread.
@@ -80,7 +82,6 @@ public class WebServer {
 		}
 	}//End of inner class Listener
 	
-	
 	/* The inner class HTTPRequest is a Runnable, i.e. a job that can be given to a Thread. The job that
 	 * the class has been given is to handle an individual client request, by reading information from the
 	 * socket's input stream (bytes) and responding by sending information to the socket's output stream (more
@@ -97,17 +98,23 @@ public class WebServer {
         public void run() {
             try{ //Try the following. If anything goes wrong, the error will be passed to the catch block
             	
-            	//Read in the request from the remote computer to this programme. This process is called Deserialization or Unmarshalling
-            	ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+               	in = new ObjectInputStream(sock.getInputStream());
+               	out = new ObjectOutputStream(sock.getOutputStream());
                 Object command = in.readObject(); //Deserialise the request into an Object
-                System.out.println(command);
-                
-                //Write out a response back to the client. This process is called Serialization or Marshalling
-                String message = "<h1>Happy Days</h1>";
-            	ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
-                out.writeObject(message);
-                out.flush();
-                out.close(); //Tidy up after and don't wolf up resources unnecessarily
+               
+            	if(command.toString().equals("2")){
+            		GetListFiles getFiles = new GetListFiles();
+            		String files = getFiles.files().toString();
+            		String message = files;
+            		out.writeObject(message);
+            		out.flush();    		
+            		
+            	}
+            	else if(command.toString().equals("3")){
+            		
+            		
+            	}
+            	
                 
             } catch (Exception e) { //Something nasty happened. We should handle error gracefully, i.e. not like this...
             	System.out.println("Error processing request from " + sock.getRemoteSocketAddress());

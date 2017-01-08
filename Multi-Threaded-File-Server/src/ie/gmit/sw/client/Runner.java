@@ -3,7 +3,6 @@ package ie.gmit.sw.client;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -49,10 +48,15 @@ public class Runner {
 				}
 			}
 			else if(response == 3){
-				downloadFile();
+				if(requestSocket == null){
+					System.out.println("Open a Connection To The Server First!");
+				}
+				else{
+					downloadFile();
+				}
 			}
 			else if(response == 4){
-				if(requestSocket != null){
+				if(requestSocket == null){
 					System.out.println("No Connection Open - Closing Program");
 				}
 				else{
@@ -66,22 +70,15 @@ public class Runner {
 
 	//Connect to the server
 	public static void connect() { 
-		
-		try { //Attempt the following. If something goes wrong, the flow jumps down to catch()
+		try { 
 			ctx = new Context();
 			ContextParser par = new ContextParser(ctx);
-			int test = ctx.getServerPort();
-			System.out.println(test);
-			requestSocket = new Socket(ctx.getServerHost(), ctx.getServerPort()); //Connect to the server
-	
-			
-			System.out.println("Successfully Connected To The Server!");			
-		
-		} catch (Exception e) { //Deal with the error here. A try/catch stops a programme crashing on error  
-			System.out.println("Error: " + e.getMessage());
-		}//End of try /catch
-
-	}//End of run(). The thread will now die...sob..sob...;)
+			requestSocket = new Socket(ctx.getServerHost(), ctx.getServerPort()); //Connect to the server			
+			System.out.println("Successfully Connected To The Server!");				
+		} catch (Exception e) { 
+			System.out.println("Error Connecting: " + e.getMessage());
+		}
+	}//run
 	
 	//Print File Listing
 	public static void printFileListing(){
@@ -103,18 +100,13 @@ public class Runner {
 				System.out.println(response);
 				System.out.println("7");
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} //Deserialise
-			
+				System.out.println("Error printing file listing: " + e.getMessage());
+			}	
 			System.out.println("8");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			
-			e.printStackTrace();
-		}
-	
-		
-	}
+			System.out.println("Error in Print File Listing: " + e.getMessage());
+		}		
+	}//printFileListing
 	
 	//Downlaod File
 	private static void downloadFile() {
@@ -135,44 +127,42 @@ public class Runner {
 				out.writeObject(fileToDownload);
 				out.flush();
 				
+				response = (String) in.readObject();
+				System.out.println(response);
 				
-				byte[] mybytearray = new byte[1024];
-			    FileOutputStream fos = new FileOutputStream(ctx.getDownloadDir() + fileToDownload);
-			    BufferedOutputStream bos = new BufferedOutputStream(fos);
-			    int bytesRead = in.read(mybytearray, 0, mybytearray.length);
-			    bos.write(mybytearray, 0, bytesRead);
-			    
-			    bos.close();
-				System.out.println(ctx.getDownloadDir() + fileToDownload);
-				System.out.println(ctx.getServerPort());
-				
-				
+				if(response.equalsIgnoreCase("y")){
+					byte[] mybytearray = new byte[1024];
+					FileOutputStream fos = new FileOutputStream(ctx.getDownloadDir() + fileToDownload);
+					BufferedOutputStream bos = new BufferedOutputStream(fos);
+					int bytesRead = in.read(mybytearray, 0, mybytearray.length);
+					System.out.println(bytesRead);
+
+					bos.write(mybytearray, 0, bytesRead);		
+
+					bos.close();	
+					
+				}
+				else{
+					System.out.println("File Not Found on Server!");
+				}
+
+						
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
-			} //Deserialise
-			
+			}		
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			
-			e.printStackTrace();
-		}
-				
-		
-	}
+			System.out.println("Error Downloading File: " + e.getMessage());
+		}	
+	}//downloadFile
 	
 	//Close Connection
 	public static void closeConnection() {
-		try {
+		try {	
 			requestSocket.close();
 			System.out.println("Conection Closed - Program Closing!");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Error Closing Connection: " + e.getMessage());
 		}		
 	}
-	
 }//Runner
 
-//TODO 
-//Fix hanging on connection with client server
-//Handle Connection handling 

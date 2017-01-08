@@ -12,7 +12,7 @@ public class GetListFiles {
 	}
 	
 	public ArrayList files(){ 
-		
+		//create an arraylist to store all the files for searching
 		ArrayList<String> listOfFiles = new ArrayList<String>();
 		
 		File fileLocation = new File(directory);
@@ -28,9 +28,9 @@ public class GetListFiles {
 				listOfFiles.add(fileName);		
 			}
 		}
+		//return the arraylist
 		return listOfFiles;
 		
 	}
 		
-	
 }//GetListFiles

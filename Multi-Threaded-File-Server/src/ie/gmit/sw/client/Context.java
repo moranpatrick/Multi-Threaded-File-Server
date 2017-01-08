@@ -41,6 +41,4 @@ public class Context {
 		return "Context [username=" + username + ", serverHost=" + serverHost + ", serverPort=" + serverPort
 				+ ", downloadDir=" + downloadDir + "]";
 	}
-	
-	
-}
+}//Context

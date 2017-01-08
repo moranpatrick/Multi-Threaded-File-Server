@@ -10,9 +10,10 @@ public class ContextParser {
 		super();
 		this.ctx = ctx;
 		try {
+			//init is called in the contructer
 			init();
 		} catch (Throwable e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 	
